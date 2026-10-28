@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.vercel/
+test-results/
+playwright-report/
+package-lock.json
+next-env.d.ts
+supabase/.temp/
+screenshots/
+.env*
