@@ -353,9 +353,12 @@ test('PWA manifest and visited public lesson work after losing connectivity', as
 }) => {
   await page.goto('/lesson/m1-money');
   await expect(page.getByRole('heading', { name: 'Деньги — инструмент обмена' })).toBeVisible();
-  const manifest = await page.request.get('/manifest.webmanifest');
-  expect(manifest.ok()).toBeTruthy();
-  expect((await manifest.json()).display).toBe('standalone');
+  const manifest = await page.evaluate(async () => {
+    const response = await fetch('/manifest.webmanifest');
+    return { status: response.status, body: await response.json() };
+  });
+  expect(manifest.status).toBe(200);
+  expect(manifest.body.display).toBe('standalone');
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });

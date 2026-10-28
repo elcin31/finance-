@@ -6,6 +6,36 @@
 изолированный браузерный контекст для каждого теста; гостевые ответы не
 подменяются заранее подготовленным прогрессом.
 
+## Проверка опубликованной версии
+
+Production: **https://finance-swart-six.vercel.app/**, дополнительный алиас
+https://finance-elcin31s-projects.vercel.app/. Использован существующий проект
+Vercel `finance` (`prj_rdsX7IPKPDqpB3w8ZqBqklBX6kbO`), без создания дубля.
+Проверенная версия приложения: commit `426896bc9d2f8e1a286f1ad4f53fc57061b2e7cb`,
+deployment `dpl_9Tn8fjii54YB5CrrsMzUjTt5duyH`, статус READY, сборка около 35 секунд.
+
+- Реальный Chromium открыл публичный production URL: HTTP 200, правильный
+  заголовок FINLAB, интерфейс после hydration, без pageerror.
+- `BASE_URL=https://finance-swart-six.vercel.app npm run test:e2e`:
+  **15 passed (1.3m)**, включая все 112 упражнений, 3 экзамена, семь ширин и
+  офлайн-перезагрузку урока.
+- `BASE_URL=https://finance-swart-six.vercel.app npm run test:auth`:
+  **1 passed (13.2s)**, настоящий Supabase, импорт, второй контекст, выход.
+- GitHub Actions для того же commit: **success**. Выполнены npm ci, TypeScript,
+  unit tests, production build и все 15 гостевых E2E на чистом runner без Supabase
+  credentials: https://github.com/elcin31/finance-/actions/runs/40660272560.
+- Vercel runtime error query за последние 15 минут: `No logs found for the
+specified criteria`. Внешние log drains/Observability Plus не подключались.
+- Временный подтверждённый Auth QA-пользователь и его данные удалены после
+  проверки; SQL подтвердил 0 оставшихся записей этого пользователя. Credentials
+  из локального `.env.e2e.local` также удалены.
+
+Первый внешний PWA-тест остановился на Node HTTP-клиенте: `ECONNREFUSED` к
+Vercel, до проверки приложения. Manifest теперь запрашивается через настоящий
+браузерный fetch той же страницы; повторный полный прогон 15/15 успешен.
+Никакие сетевые ответы не подменялись. Следующий коммит содержит только этот
+тестовый запрос, обновлённые снимки и документацию; приложение не изменено.
+
 Итоговый полный запуск `npm run test:e2e`: **15 passed (1.3m)**. Прогон
 включает полный учебный путь, повторный экзамен, все перечисленные размеры и
 инструменты, клавиатуру и отключение сети. Он повторён после финальной сборки
