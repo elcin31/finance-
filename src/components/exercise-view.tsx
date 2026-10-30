@@ -1,5 +1,6 @@
 'use client';
-import { Check, CircleHelp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, CircleHelp } from 'lucide-react';
+import type { PublicExamQuestion } from '@/lib/learning-types';
 import type { Answer, Exercise } from '@/lib/types';
 export function ExerciseView({
   exercise,
@@ -9,10 +10,10 @@ export function ExerciseView({
   solved,
   feedback,
 }: {
-  exercise: Exercise;
+  exercise: Exercise | PublicExamQuestion['exercise'];
   answer: Answer;
   onChange: (a: Answer) => void;
-  onCheck: () => void;
+  onCheck?: () => void;
   solved: boolean;
   feedback?: { correct: boolean; message: string };
 }) {
@@ -31,17 +32,18 @@ export function ExerciseView({
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        if (!solved) onCheck();
+        if (!solved && onCheck) onCheck();
       }}
     >
       <h1>{exercise.prompt}</h1>
+      {exercise.instruction && <p className="exercise-instruction">{exercise.instruction}</p>}
       {(exercise.kind === 'choice' || exercise.kind === 'scenario') && (
         <>
           <p className="muted" style={{ fontSize: 11 }}>
             {exercise.multiple ? 'Выберите все подходящие варианты.' : 'Выберите один вариант.'}
           </p>
           <div className="exercise-options" role="group" aria-label="Варианты ответа">
-            {exercise.options.map((o, index) => (
+            {(exercise.options ?? []).map((o, index) => (
               <button
                 className={`exercise-option ${selected.includes(o.id) ? 'selected' : ''}`}
                 type="button"
@@ -89,7 +91,11 @@ export function ExerciseView({
       )}
       {exercise.kind === 'numeric' && (
         <div className="numeric-answer field">
-          <label htmlFor={`answer-${exercise.id}`}>{units[exercise.unit]}</label>
+          <label htmlFor={`answer-${exercise.id}`}>
+            {exercise.unit === 'currency' && exercise.currency === 'USD'
+              ? 'Доллары США · допускается знак $'
+              : units[exercise.unit ?? 'number']}
+          </label>
           <input
             id={`answer-${exercise.id}`}
             className="input"
@@ -102,7 +108,9 @@ export function ExerciseView({
               exercise.unit === 'percent'
                 ? 'Ваш ответ, %'
                 : exercise.unit === 'currency'
-                  ? 'Ваш ответ, ₽'
+                  ? exercise.currency === 'USD'
+                    ? 'Ваш ответ, $'
+                    : 'Ваш ответ, ₽'
                   : exercise.unit === 'bps'
                     ? 'Ваш ответ, bp'
                     : 'Ваш ответ'
@@ -119,9 +127,10 @@ export function ExerciseView({
             Каждому термину соответствует одно определение.
           </p>
           <div className="matching-rows">
-            {exercise.pairs.map((pair) => {
+            {(exercise.pairs ?? []).map((pair) => {
               const answers = typeof answer === 'object' && !Array.isArray(answer) ? answer : {};
-              const options = [...exercise.pairs.slice(1), exercise.pairs[0]];
+              const pairs = exercise.pairs ?? [];
+              const options = [...pairs.slice(1), ...pairs.slice(0, 1)];
               return (
                 <div className="matching-row" key={pair.id}>
                   <label htmlFor={`match-${exercise.id}-${pair.id}`}>{pair.left}</label>
@@ -145,7 +154,134 @@ export function ExerciseView({
           </div>
         </>
       )}
-      {!solved && (
+      {exercise.kind === 'ordering' &&
+        (() => {
+          const items = exercise.items ?? [];
+          const order =
+            Array.isArray(answer) && answer.length === items.length
+              ? answer
+              : [...items.slice(1), ...items.slice(0, 1)].map((item) => item.id);
+          const move = (index: number, direction: number) => {
+            const next = [...order];
+            [next[index], next[index + direction]] = [next[index + direction], next[index]];
+            onChange(next);
+          };
+          return (
+            <div className="ordering-list" data-testid="ordering-list">
+              <p className="muted">
+                Расположите шаги сверху вниз. Используйте кнопки или клавиатуру.
+              </p>
+              <ol>
+                {order.map((id, index) => (
+                  <li key={id} data-item-id={id}>
+                    <span className="order-number">{index + 1}</span>
+                    <span>{items.find((item) => item.id === id)?.label}</span>
+                    <div className="order-actions">
+                      <button
+                        type="button"
+                        className="icon-button"
+                        disabled={solved || index === 0}
+                        aria-label={`Переместить выше: ${items.find((item) => item.id === id)?.label}`}
+                        onClick={() => move(index, -1)}
+                      >
+                        <ArrowUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        disabled={solved || index === order.length - 1}
+                        aria-label={`Переместить ниже: ${items.find((item) => item.id === id)?.label}`}
+                        onClick={() => move(index, 1)}
+                      >
+                        <ArrowDown size={15} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })()}
+      {exercise.kind === 'calculation' &&
+        (() => {
+          const parameters = exercise.parameters ?? [];
+          const values: Record<string, string> = Object.fromEntries(
+            parameters.map((p) => [p.id, String(p.value)]),
+          );
+          Object.assign(values, typeof answer === 'object' && !Array.isArray(answer) ? answer : {});
+          return (
+            <div className="calculation-task">
+              <div className="calculation-parameters">
+                {parameters.map((parameter) => (
+                  <div className="field calculation-parameter" key={parameter.id}>
+                    <label htmlFor={`param-${exercise.id}-${parameter.id}`}>
+                      {parameter.label} · {parameter.unit}
+                    </label>
+                    <input
+                      className="input"
+                      id={`param-${exercise.id}-${parameter.id}`}
+                      aria-label={parameter.label}
+                      inputMode="decimal"
+                      autoComplete="off"
+                      disabled={solved}
+                      value={values[parameter.id]}
+                      onChange={(event) =>
+                        onChange({ ...values, [parameter.id]: event.target.value, result: '' })
+                      }
+                    />
+                    <input
+                      type="range"
+                      min={parameter.min}
+                      max={parameter.max}
+                      step={parameter.step}
+                      disabled={solved}
+                      aria-label={`Изменить: ${parameter.label}`}
+                      value={
+                        Number.isFinite(Number(values[parameter.id].replace(',', '.')))
+                          ? Math.min(
+                              parameter.max,
+                              Math.max(
+                                parameter.min,
+                                Number(values[parameter.id].replace(',', '.')),
+                              ),
+                            )
+                          : parameter.min
+                      }
+                      onChange={(event) =>
+                        onChange({ ...values, [parameter.id]: event.target.value, result: '' })
+                      }
+                    />
+                    <small>
+                      От {parameter.min} до {parameter.max} · шаг {parameter.step}
+                    </small>
+                  </div>
+                ))}
+              </div>
+              <div className="numeric-answer field">
+                <label htmlFor={`result-${exercise.id}`}>
+                  {exercise.unit === 'currency' && exercise.currency === 'USD'
+                    ? 'Доллары США'
+                    : units[exercise.unit ?? 'number']}
+                </label>
+                <input
+                  className="input"
+                  id={`result-${exercise.id}`}
+                  aria-label="Результат расчёта"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  disabled={solved}
+                  value={values.result ?? ''}
+                  placeholder="Рассчитайте и введите результат"
+                  onChange={(event) => onChange({ ...values, result: event.target.value })}
+                />
+              </div>
+              <p className="muted" style={{ fontSize: 11 }}>
+                Измените параметры и рассчитайте результат выбранного сценария. Это учебная модель.
+              </p>
+            </div>
+          );
+        })()}
+      {!solved && onCheck && (
         <button className="button primary exercise-check" type="submit">
           Проверить ответ
         </button>

@@ -1,5 +1,565 @@
 @import 'tailwindcss';
 
+.learning-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 25px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  width: fit-content;
+  max-width: 100%;
+}
+.learning-tabs > a {
+  padding: 11px 18px;
+  border-radius: 10px;
+  color: var(--muted);
+  min-height: 44px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.learning-tabs > a.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.mobile-learning-nav {
+  display: none;
+}
+.study-session,
+.practice-columns > *,
+.practice-question,
+.exam-question {
+  min-width: 0;
+}
+.practice-skill-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 24px 0;
+}
+.practice-skill-banner h2 {
+  font-size: 24px;
+  margin: 4px 0 8px;
+  letter-spacing: -0.7px;
+}
+.practice-skill-banner p {
+  max-width: 700px;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+.practice-mastery {
+  display: grid;
+  text-align: right;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.practice-mastery strong {
+  font-size: 32px;
+  color: var(--accent);
+}
+.practice-mastery span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.practice-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 22px;
+  align-items: start;
+}
+.practice-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+  font-size: 11px;
+}
+.practice-question h1,
+.exam-question h1 {
+  font-size: clamp(21px, 2.2vw, 29px);
+  line-height: 1.4;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+.exercise-instruction {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.practice-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.practice-next > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.hint-card {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 15px;
+  font-size: 12px;
+}
+.hint-card p {
+  margin: 8px 0;
+}
+.hint-card small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.ordering-list ol {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: grid;
+  gap: 10px;
+}
+.ordering-list li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.order-number {
+  color: var(--accent);
+  font-weight: 600;
+}
+.ordering-list li > span:nth-child(2) {
+  overflow-wrap: anywhere;
+}
+.order-actions {
+  display: flex;
+  gap: 4px;
+}
+.ordering-list button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.calculation-parameters {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+}
+.calculation-parameter {
+  display: grid;
+  gap: 7px;
+}
+.calculation-parameter label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.calculation-parameter input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+  min-height: 30px;
+}
+.calculation-parameter input.input {
+  max-width: 240px;
+}
+.review-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.review-overview > div {
+  display: grid;
+  gap: 7px;
+}
+.review-overview strong {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -1px;
+  color: var(--accent);
+}
+.review-overview span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.review-card {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 14px;
+}
+.review-card h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.review-card p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+.review-date {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.review-card .button {
+  margin-top: auto;
+}
+.review-empty {
+  text-align: center;
+  padding-block: 40px;
+}
+.review-empty > svg {
+  margin: auto;
+  color: var(--accent);
+}
+.review-empty p {
+  max-width: 500px;
+  margin: 15px auto 22px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.review-upcoming {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.review-upcoming:last-child {
+  border: 0;
+}
+.review-upcoming p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+.english-task-grid,
+.english-terms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.english-task {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: border-color 0.15s;
+}
+.english-task:hover {
+  border-color: var(--accent);
+}
+.english-task .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.english-task h3 {
+  font-size: 15px;
+  line-height: 1.65;
+  font-weight: 500;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.english-task > .text-link {
+  margin-top: auto;
+}
+.english-terms-grid p,
+.english-terms-grid blockquote {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.english-terms-grid p {
+  color: var(--muted);
+}
+.english-terms-grid blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  margin: 18px 0;
+}
+.english-term-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.exam-intro {
+  max-width: 800px;
+  margin: 25px auto;
+  padding: 36px;
+}
+.exam-intro h1 {
+  font-size: 30px;
+  line-height: 1.35;
+}
+.exam-intro > p {
+  color: var(--muted);
+}
+.exam-question {
+  max-width: 860px;
+  margin: auto;
+}
+.exam-question-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0;
+}
+.exam-question-nav .button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.exam-save {
+  font-size: 11px;
+  margin: 25px 0 0;
+}
+.exam-results {
+  display: grid;
+  gap: 18px;
+}
+.exam-results p,
+.exam-results details {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.exam-results h3 {
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 15px 0;
+}
+.exam-recommendations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.exam-recommendations p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.exam-recommendations a {
+  margin-top: 12px;
+  margin-right: 12px;
+}
+.adaptive-dashboard {
+  margin-top: 22px;
+}
+.adaptive-dashboard h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adaptive-dashboard h2 {
+  font-size: 22px;
+  margin: 20px 0 8px;
+}
+.adaptive-dashboard > p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.adaptive-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  margin-top: 26px;
+}
+.adaptive-stat-grid > a {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.adaptive-stat-grid strong {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.adaptive-stat-grid span {
+  width: 100%;
+  font-size: 10px;
+  color: var(--muted);
+}
+.weak-skill-links {
+  margin-top: 20px;
+  font-size: 11px;
+  display: grid;
+  gap: 10px;
+}
+.weak-skill-links a {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.concepts-entry {
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.concepts-entry p {
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 660px;
+}
+.concepts-entry .button {
+  flex-shrink: 0;
+}
+@media (max-width: 1100px) {
+  .practice-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .practice-columns > aside {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .practice-columns > aside > section.panel {
+    margin-top: 0 !important;
+  }
+  .concepts-entry {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+@media (max-width: 900px) {
+  .mobile-learning-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    padding: 6px 12px;
+  }
+  .mobile-learning-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    flex: 1;
+    font-size: 11px;
+    border-radius: 9px;
+    color: var(--muted);
+  }
+  .mobile-learning-nav a.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+}
+@media (max-width: 600px) {
+  .practice-skill-banner {
+    gap: 12px;
+    align-items: start;
+  }
+  .practice-skill-banner h2 {
+    font-size: 21px;
+  }
+  .practice-mastery strong {
+    font-size: 25px;
+  }
+  .practice-mastery span {
+    max-width: 70px;
+    font-size: 9px;
+  }
+  .practice-columns > aside,
+  .review-grid,
+  .english-task-grid,
+  .english-terms-grid,
+  .exam-recommendations {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .review-overview {
+    gap: 14px;
+  }
+  .review-overview strong {
+    font-size: 22px;
+  }
+  .review-overview span {
+    font-size: 10px;
+  }
+  .review-upcoming {
+    flex-direction: column;
+    align-items: start;
+    gap: 12px;
+  }
+  .learning-tabs {
+    width: 100%;
+  }
+  .learning-tabs > a {
+    flex: 1;
+    padding-inline: 10px;
+    font-size: 11px;
+  }
+  .english-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .english-tabs > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ordering-list li {
+    gap: 7px;
+    padding: 10px 8px;
+    grid-template-columns: 18px minmax(0, 1fr) 44px;
+  }
+  .order-actions {
+    flex-direction: column;
+  }
+  .exam-intro {
+    padding: 24px;
+  }
+  .exam-intro h1 {
+    font-size: 25px;
+  }
+  .exam-question .lesson-controls {
+    gap: 8px;
+  }
+  .adaptive-dashboard .panel-header {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .adaptive-stat-grid {
+    gap: 10px;
+  }
+  .practice-next .button {
+    width: 100%;
+  }
+}
+
 :root {
   --bg: #f7f9f8;
   --surface: #fff;

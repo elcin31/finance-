@@ -4,8 +4,35 @@ import { ArrowRight, Check, Clock3, LockKeyhole, Trophy } from 'lucide-react';
 import { lessons, modules } from '@/content/curriculum';
 import { hasCompleted, isUnlocked } from '@/lib/progress';
 import { useLearning } from './providers';
-export default function LearningPath() {
-  const { progress } = useLearning();
+import { useEffectiveProgress } from './effective-progress';
+import { SkillTree } from './knowledge-screens';
+export default function LearningPath({ view = 'skills' }: { view?: string }) {
+  return (
+    <>
+      <nav className="learning-tabs" role="tablist" aria-label="Образовательный путь">
+        <Link
+          role="tab"
+          aria-selected={view !== 'lessons'}
+          href="/path"
+          className={view !== 'lessons' ? 'active' : ''}
+        >
+          Карта навыков
+        </Link>
+        <Link
+          role="tab"
+          aria-selected={view === 'lessons'}
+          href="/path?view=lessons"
+          className={view === 'lessons' ? 'active' : ''}
+        >
+          Уроки и экзамены
+        </Link>
+      </nav>
+      <div role="tabpanel">{view === 'lessons' ? <CurriculumPath /> : <SkillTree />}</div>
+    </>
+  );
+}
+function CurriculumPath() {
+  const progress = useEffectiveProgress();
   if (!progress) return <div className="loading-state">Загружаем путь…</div>;
   const completed = lessons.filter((l) => hasCompleted(progress, l)).length;
   return (

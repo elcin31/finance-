@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Providers } from '@/components/providers';
 import { AppShell } from '@/components/shell';
+import { LearningProvider } from '@/components/learning-provider';
 import './globals.css';
 export const metadata: Metadata = {
   title: { default: 'FINLAB Academy — понимание создаёт капитал', template: '%s · FINLAB Academy' },
@@ -32,7 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>
-          <AppShell>{children}</AppShell>
+          <LearningProvider>
+            <AppShell>{children}</AppShell>
+          </LearningProvider>
         </Providers>
       </body>
     </html>

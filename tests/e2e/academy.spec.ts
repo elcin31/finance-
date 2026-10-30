@@ -2,124 +2,107 @@ import { expect, test, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { lessons } from '../../src/content/curriculum';
 import type { Exercise } from '../../src/lib/types';
+import { fillCorrectAnswer, fillWrongAnswer } from './exercise-helpers';
+import { runServerExam } from './exam-helpers';
 
 const firstLesson = lessons.find((lesson) => lesson.id === 'm1-money')!;
 
 async function answerCorrectly(page: Page, exercise: Exercise) {
-  if (exercise.kind === 'numeric') {
-    await page
-      .getByLabel(/Рубли|Проценты|Базисные пункты|Число без единиц/)
-      .fill(String(exercise.expected));
-  } else if (exercise.kind === 'matching') {
-    for (const pair of exercise.pairs)
-      await page.getByLabel(pair.left, { exact: true }).selectOption(pair.id);
-  } else if (exercise.kind === 'boolean') {
-    await page
-      .getByRole('button', { name: exercise.correct ? 'Верно' : 'Неверно', exact: true })
-      .click();
-  } else {
-    const selected = page.locator('.exercise-option[aria-pressed="true"]');
-    while (await selected.count()) await selected.first().click();
-    for (const id of exercise.correct) {
-      const option = exercise.options.find((item) => item.id === id)!;
-      await page.locator('.exercise-option').filter({ hasText: option.label }).click();
-    }
-  }
+  await fillCorrectAnswer(page, exercise);
   await page.getByRole('button', { name: 'Проверить ответ', exact: true }).click();
   await expect(page.locator('.feedback.correct')).toBeVisible();
 }
 
 async function answerWrongly(page: Page, exercise: Exercise) {
-  if (exercise.kind === 'numeric') {
-    await page
-      .getByLabel(/Рубли|Проценты|Базисные пункты|Число без единиц/)
-      .fill(String(exercise.expected + Math.max(1, Math.abs(exercise.expected) * 0.1)));
-  } else if (exercise.kind === 'boolean') {
-    await page
-      .getByRole('button', { name: exercise.correct ? 'Неверно' : 'Верно', exact: true })
-      .click();
-  } else if (exercise.kind === 'matching') {
-    for (let index = 0; index < exercise.pairs.length; index++) {
-      await page
-        .getByLabel(exercise.pairs[index].left, { exact: true })
-        .selectOption(exercise.pairs[(index + 1) % exercise.pairs.length].id);
-    }
-  } else {
-    const wrong =
-      exercise.options.find((option) => !exercise.correct.includes(option.id)) ??
-      exercise.options.find((option) => exercise.correct.includes(option.id))!;
-    await page.locator('.exercise-option').filter({ hasText: wrong.label }).click();
-  }
+  await fillWrongAnswer(page, exercise);
   await page.getByRole('button', { name: 'Проверить ответ', exact: true }).click();
   await expect(page.locator('.feedback.incorrect')).toContainText(exercise.hint);
   await expect(page.getByRole('button', { name: 'Продолжить', exact: true })).toBeDisabled();
 }
 
-test('all 18 lessons and 3 exams complete through real practice, including failed exam and retake', async ({
+test('all 18 lessons and 3 server exams complete, with failed exam, new variant and verified history', async ({
   page,
 }) => {
   test.setTimeout(300_000);
   for (const lesson of lessons) {
     await page.goto(`/lesson/${lesson.id}`);
-    const passes = lesson.id === 'm1-exam' ? 2 : 1;
-    for (let pass = 0; pass < passes; pass++) {
-      let exerciseIndex = 0;
-      for (const block of lesson.blocks) {
-        if (block.type === 'exercise') {
-          await expect(
-            page.getByRole('heading', { name: block.exercise.prompt, exact: true }),
-          ).toBeVisible();
-          if (lesson.id === 'm1-exam' && pass === 0 && exerciseIndex < 3)
-            await answerWrongly(page, block.exercise);
-          await answerCorrectly(page, block.exercise);
-          exerciseIndex++;
-        } else {
-          await expect(page.getByRole('heading', { name: block.title, exact: true })).toBeVisible();
-        }
-        await page
-          .getByRole('button', {
-            name: block === lesson.blocks.at(-1) ? 'Завершить урок' : 'Продолжить',
-            exact: true,
-          })
-          .click();
-      }
-      if (lesson.id === 'm1-exam' && pass === 0) {
-        await expect(page.getByRole('heading', { name: 'Знания стоит закрепить' })).toBeVisible();
-        expect(
-          Number((await page.locator('.completion-score').innerText()).replace('%', '')),
-        ).toBeLessThan(70);
+    if (lesson.exam) {
+      if (lesson.moduleId === 'm1') {
+        const failed = await runServerExam(page, lesson.moduleId, {
+          wrongCount: 3,
+          verifyReload: true,
+        });
+        expect(failed.passed).toBeFalsy();
+        expect(failed.score).toBeLessThan(80);
         await expect(page.getByRole('link', { name: /Следующий урок/ })).toHaveCount(0);
-        await page.getByRole('button', { name: 'Повторить экзамен', exact: true }).click();
+        const retake = await runServerExam(page, lesson.moduleId);
+        expect(retake.variant).not.toBe(failed.variant);
+        expect(retake.id).not.toBe(failed.id);
+        expect(retake.score).toBe(100);
       } else {
-        await expect(
-          page.getByRole('heading', {
-            name: lesson.exam ? 'Экзамен пройден!' : 'Ещё один шаг вперёд.',
-          }),
-        ).toBeVisible();
-        await expect(page.locator('.completion-score')).toHaveText('100%');
+        const passed = await runServerExam(page, lesson.moduleId);
+        expect(passed.score).toBe(100);
+        expect(passed.passed).toBeTruthy();
       }
+      continue;
     }
+    for (const block of lesson.blocks) {
+      if (block.type === 'exercise') {
+        await expect(
+          page.getByRole('heading', { name: block.exercise.prompt, exact: true }),
+        ).toBeVisible();
+        await answerCorrectly(page, block.exercise);
+      } else {
+        await expect(page.getByRole('heading', { name: block.title, exact: true })).toBeVisible();
+      }
+      await page
+        .getByRole('button', {
+          name: block === lesson.blocks.at(-1) ? 'Завершить урок' : 'Продолжить',
+          exact: true,
+        })
+        .click();
+    }
+    await expect(page.getByRole('heading', { name: 'Ещё один шаг вперёд.' })).toBeVisible();
+    await expect(page.locator('.completion-score')).toHaveText('100%');
   }
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem('finlab.learning.guest.v2') ?? '{"examResults":[]}')
+            .examResults.length,
+      ),
+    )
+    .toBe(4);
   const snapshot = await page.evaluate(() => {
-    const progress = JSON.parse(localStorage.getItem('finlab.guest.v1')!);
+    const legacy = JSON.parse(localStorage.getItem('finlab.guest.v1')!);
+    const learning = JSON.parse(localStorage.getItem('finlab.learning.guest.v2')!);
     return {
-      completions: progress.completions.length,
-      attempts: progress.attempts.length,
-      uniqueCompleted: [
-        ...new Set(
-          progress.completions
-            .filter((c: { score: number }) => c.score >= 70)
-            .map((c: { lessonId: string }) => c.lessonId),
-        ),
-      ].length,
+      legacyCompletions: legacy.completions.length,
+      lessonIds: [
+        ...new Set(legacy.completions.map((item: { lessonId: string }) => item.lessonId)),
+      ],
+      examResults: learning.examResults as {
+        id: string;
+        lessonId: string;
+        score: number;
+        passed: boolean;
+      }[],
     };
   });
-  expect(snapshot.completions).toBe(22);
-  expect(snapshot.uniqueCompleted).toBe(21);
-  expect(snapshot.attempts).toBeGreaterThanOrEqual(112);
+  expect(snapshot.legacyCompletions).toBe(18);
+  expect(snapshot.examResults).toHaveLength(4);
+  expect(new Set(snapshot.examResults.map((result) => result.id)).size).toBe(4);
+  const completed = new Set([
+    ...snapshot.lessonIds,
+    ...snapshot.examResults.filter((result) => result.passed).map((result) => result.lessonId),
+  ]);
+  expect(completed.size).toBe(21);
   await page.goto('/path');
+  await page.getByRole('tab', { name: /Уроки|Программа/ }).click();
   await expect(page.getByText('Пройдено 21 из 21 этапов', { exact: true })).toBeVisible();
   await page.reload();
+  await page.getByRole('tab', { name: /Уроки|Программа/ }).click();
   await expect(page.getByText('Пройдено 21 из 21 этапов', { exact: true })).toBeVisible();
 });
 

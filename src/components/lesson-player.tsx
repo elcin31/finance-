@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Check, LockKeyhole, RotateCcw, Trophy } from 'lucide-react';
 import { useLearning } from './providers';
+import { useKnowledge } from './learning-provider';
+import { useEffectiveProgress } from './effective-progress';
+import SecureExamPlayer from './secure-exam-player';
+import { mapLegacyExercise, difficultyForExercise } from '@/lib/knowledge';
 import { ExerciseView } from './exercise-view';
 import { LessonSandbox } from './financial-lab';
 import { lessons, modules } from '@/content/curriculum';
@@ -26,7 +30,16 @@ function blockLabel(b: LessonBlock) {
             : 'Понимание';
 }
 export default function LessonPlayer({ lesson }: { lesson: Lesson }) {
+  return lesson.exam ? (
+    <SecureExamPlayer key={lesson.id} lesson={lesson} />
+  ) : (
+    <StandardLessonPlayer key={lesson.id} lesson={lesson} />
+  );
+}
+function StandardLessonPlayer({ lesson }: { lesson: Lesson }) {
   const { progress, update, ready } = useLearning();
+  const { record } = useKnowledge();
+  const effective = useEffectiveProgress();
   const [invalid, setInvalid] = useState<{ id: string; message: string } | null>(null);
   const state = progress?.states[lesson.id];
   const unlocked = progress ? isUnlocked(lesson, lessons, progress) : false;
@@ -111,7 +124,7 @@ export default function LessonPlayer({ lesson }: { lesson: Lesson }) {
   };
   if (completion) {
     const passed = !lesson.exam || completion.score >= 70;
-    const next = nextLesson(lessons, progress);
+    const next = nextLesson(lessons, effective ?? progress);
     return (
       <section className="panel completion-card">
         <div className="completion-icon">
@@ -193,19 +206,42 @@ export default function LessonPlayer({ lesson }: { lesson: Lesson }) {
         return;
       }
       setInvalid(null);
+      const id = crypto.randomUUID(),
+        at = new Date().toISOString();
+      record({
+        id,
+        sessionId: state.runId,
+        exerciseId: exercise.id,
+        templateId: exercise.id,
+        variantId: exercise.variantId ?? exercise.id,
+        seed: 0,
+        lessonId: lesson.id,
+        contentVersion: lesson.version,
+        competencyIds: mapLegacyExercise(lesson.id, exercise),
+        difficulty: difficultyForExercise(lesson.id, exercise),
+        mode: 'lesson',
+        answer,
+        valid: true,
+        correct: result.correct,
+        errorType: result.correct
+          ? 'none'
+          : (result.errorType ?? (exercise.kind === 'numeric' ? 'calculation' : 'concept')),
+        hintsUsed: false,
+        at,
+      });
       update((p) => ({
         ...p,
         attempts: [
           ...p.attempts,
           {
-            id: crypto.randomUUID(),
+            id,
             lessonId: lesson.id,
             exerciseId: exercise.id,
             runId: state.runId,
             contentVersion: lesson.version,
             answer,
             correct: result.correct,
-            at: new Date().toISOString(),
+            at,
           },
         ],
       }));

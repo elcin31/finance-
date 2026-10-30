@@ -23,6 +23,8 @@ import { hasCompleted, nextLesson, reviewLessons, type Progress } from '@/lib/pr
 import { gradeExercise } from '@/lib/evaluation';
 import type { NumericExercise } from '@/lib/types';
 import { useLearning } from './providers';
+import { useEffectiveProgress } from './effective-progress';
+import { LearningDashboard } from './learning-dashboard';
 
 const daily: NumericExercise = {
   id: 'daily-growth',
@@ -142,7 +144,8 @@ function DailyTask({ progress }: { progress: Progress }) {
   );
 }
 export default function Home() {
-  const { progress, ready } = useLearning();
+  const { ready } = useLearning();
+  const progress = useEffectiveProgress();
   if (!progress || !ready)
     return (
       <div className="loading-state" role="status">
@@ -277,6 +280,7 @@ export default function Home() {
               <ArrowRight size={15} />
             </Link>
           </section>
+          <LearningDashboard />
           <div className="section-heading">
             <h2>Ваша траектория</h2>
             <Link href="/path" className="text-link">
@@ -288,7 +292,7 @@ export default function Home() {
               const Icon = moduleIcons[index];
               const done = m.lessonIds.filter((id) => completed.some((l) => l.id === id)).length;
               return (
-                <Link key={m.id} className="panel module-card" href={`/path#${m.id}`}>
+                <Link key={m.id} className="panel module-card" href={`/path?view=lessons#${m.id}`}>
                   <div className="module-top">
                     <span className="module-symbol">
                       <Icon size={19} strokeWidth={1.6} />

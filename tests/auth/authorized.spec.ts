@@ -33,7 +33,22 @@ test('real password login, guest import once, second device restore, signout iso
     return JSON.parse(localStorage.getItem(key)!).attempts as { id: string }[];
   });
   expect(canonical.some((a) => a.id === importedId)).toBe(true);
-  const count = canonical.length;
+  const count = await page.evaluate(() => {
+    const legacyKey = Object.keys(localStorage).find((key) =>
+      key.startsWith('finlab.account.v1.'),
+    )!;
+    const learningKey = Object.keys(localStorage).find((key) =>
+      key.startsWith('finlab.learning.account.v2.'),
+    );
+    const legacy = JSON.parse(localStorage.getItem(legacyKey)!).attempts as { id: string }[];
+    const events = learningKey
+      ? (JSON.parse(localStorage.getItem(learningKey)!).events as { id: string; valid: boolean }[])
+      : [];
+    return new Set([
+      ...legacy.map((event) => event.id),
+      ...events.filter((event) => event.valid).map((event) => event.id),
+    ]).size;
+  });
   await expect(page.locator('.stat-box').nth(1).locator('strong')).toHaveText(String(count));
   await page.reload();
   await expect(page.getByText('Прогресс синхронизирован', { exact: true })).toBeVisible({

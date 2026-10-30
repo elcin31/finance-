@@ -7,6 +7,12 @@ export type ExerciseBase = {
   hint: string;
   explanation: string;
   skills: SkillId[];
+  competencyIds?: string[];
+  difficulty?: 1 | 2 | 3;
+  instruction?: string;
+  templateId?: string;
+  variantId?: string;
+  seed?: number;
 };
 export type ChoiceExercise = ExerciseBase & {
   kind: 'choice' | 'scenario';
@@ -18,6 +24,7 @@ export type NumericExercise = ExerciseBase & {
   kind: 'numeric';
   expected: number;
   unit: Unit;
+  currency?: 'RUB' | 'USD';
   absoluteTolerance?: number;
   relativeTolerance?: number;
 };
@@ -26,7 +33,35 @@ export type MatchingExercise = ExerciseBase & {
   kind: 'matching';
   pairs: { id: string; left: string; right: string }[];
 };
-export type Exercise = ChoiceExercise | NumericExercise | BooleanExercise | MatchingExercise;
+export type OrderingExercise = ExerciseBase & {
+  kind: 'ordering';
+  items: { id: string; label: string }[];
+  correctOrder: string[];
+};
+export type CalculationExercise = ExerciseBase & {
+  kind: 'calculation';
+  parameters: {
+    id: string;
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    step: number;
+    unit: string;
+  }[];
+  model: 'future-value' | 'present-value' | 'real-return' | 'portfolio-return';
+  unit: Unit;
+  currency?: 'RUB' | 'USD';
+  absoluteTolerance?: number;
+  relativeTolerance?: number;
+};
+export type Exercise =
+  | ChoiceExercise
+  | NumericExercise
+  | BooleanExercise
+  | MatchingExercise
+  | OrderingExercise
+  | CalculationExercise;
 export type LessonBlock =
   | { id: string; type: 'text'; title: string; paragraphs: string[] }
   | {

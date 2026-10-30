@@ -14,9 +14,14 @@ import {
   CloudCheck,
   CloudOff,
   Laptop,
+  RotateCcw,
+  Globe2,
+  Brain,
 } from 'lucide-react';
 import { useLearning } from './providers';
-import { useEffect, type ReactNode } from 'react';
+import { useKnowledge } from './learning-provider';
+import { Suspense, type ReactNode } from 'react';
+import { CacheCurrentPage } from './cache-current-page';
 
 export const navigation = [
   { href: '/', label: 'Главная', icon: House },
@@ -24,6 +29,11 @@ export const navigation = [
   { href: '/lab', label: 'Лаборатория', icon: FlaskConical },
   { href: '/library', label: 'Библиотека', icon: LibraryBig },
   { href: '/profile', label: 'Мой профиль', short: 'Профиль', icon: UserRound },
+];
+const learningNavigation = [
+  { href: '/review', label: 'Повторить знания', icon: RotateCcw },
+  { href: '/english', label: 'Финансовый английский', icon: Globe2 },
+  { href: '/knowledge', label: 'Мои знания', icon: Brain },
 ];
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
@@ -56,17 +66,14 @@ export function Logo({ compact = false }: { compact?: boolean }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const { theme, toggleTheme, user, status, storageError, retrySync } = useLearning();
-  const active = navigation.find((n) => n.href === path);
+  const learning = useKnowledge();
+  const active = [...navigation, ...learningNavigation].find((n) => n.href === path);
   const lesson = path.startsWith('/lesson');
-  useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      navigator.serviceWorker.ready
-        .then((registration) => registration.active?.postMessage({ type: 'CACHE_PAGE', url: path }))
-        .catch(() => {});
-    }
-  }, [path]);
   return (
     <div className="app-shell">
+      <Suspense fallback={null}>
+        <CacheCurrentPage />
+      </Suspense>
       <a className="skip-link" href="#main-content">
         Перейти к содержанию
       </a>
@@ -76,7 +83,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         <div className="sidebar-label">ВАШЕ ПРОСТРАНСТВО</div>
         <nav aria-label="Основная навигация">
-          {navigation.map(({ href, label, icon: Icon }) => (
+          {[...navigation, ...learningNavigation].map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -114,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="theme-switch" data-on={theme === 'dark'} />
           </button>
           <div className="sidebar-version">
-            FINLAB ACADEMY <span>0.1</span>
+            FINLAB ACADEMY <span>0.2</span>
           </div>
         </div>
       </aside>
@@ -148,6 +155,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </header>
+        <nav className="mobile-learning-nav" aria-label="Учебные инструменты">
+          {learningNavigation.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              aria-current={path === href ? 'page' : undefined}
+              className={path === href ? 'active' : ''}
+            >
+              <Icon size={14} />
+              <span>
+                {href === '/review' ? 'Повторить' : href === '/english' ? 'English' : label}
+              </span>
+            </Link>
+          ))}
+        </nav>
         <main id="main-content" className={`main-content ${lesson ? 'lesson-main' : ''}`}>
           {storageError && (
             <div role="alert" className="notice error">
@@ -160,24 +182,34 @@ export function AppShell({ children }: { children: ReactNode }) {
               <button onClick={retrySync}>Повторить</button>
             </div>
           )}
+          {learning.error && (
+            <div role="status" className="notice warning">
+              {learning.error}
+              <button onClick={() => void learning.refresh()}>
+                Повторить синхронизацию практики
+              </button>
+            </div>
+          )}
           {children}
           <footer className="footer">
             <span>Понимать. Практиковаться. Расти.</span>
             <span className="sync-caption">
-              {status === 'synced' ? (
+              {status === 'synced' && learning.status === 'synced' ? (
                 <CloudCheck size={14} />
               ) : status === 'error' ? (
                 <CloudOff size={14} />
               ) : (
                 <Laptop size={14} />
               )}{' '}
-              {status === 'synced'
+              {status === 'synced' && learning.status === 'synced'
                 ? 'Прогресс синхронизирован'
-                : status === 'syncing'
+                : status === 'syncing' || learning.status === 'syncing'
                   ? 'Сохраняем в аккаунт…'
-                  : user
-                    ? 'Прогресс в аккаунте'
-                    : 'Прогресс на этом устройстве'}
+                  : status === 'error' || learning.status === 'error'
+                    ? 'Есть несинхронизированные изменения'
+                    : user
+                      ? 'Прогресс в аккаунте'
+                      : 'Прогресс на этом устройстве'}
             </span>
           </footer>
         </main>

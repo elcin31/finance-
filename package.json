@@ -1,6 +1,6 @@
 {
   "name": "finlab-academy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "engines": {
     "node": ">=24 <25"
@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:auth": "playwright test --config playwright.auth.config.ts"
+    "test:auth": "playwright test --config playwright.auth.config.ts",
+    "exam:bank": "tsx scripts/build-exam-bank.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",
@@ -33,6 +34,7 @@
     "@types/react-dom": "19.3.0",
     "prettier": "3.9.10",
     "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
   }

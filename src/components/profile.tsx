@@ -15,15 +15,9 @@ import {
 import { useLearning } from './providers';
 import { supabase } from '@/lib/supabase';
 import { lessons, modules } from '@/content/curriculum';
-import { hasCompleted, skillStats } from '@/lib/progress';
-import type { SkillId } from '@/lib/types';
-const skillLabels: Record<SkillId, string> = {
-  literacy: 'Financial Literacy · Финансовая грамотность',
-  mathematics: 'Financial Mathematics · Финансовая математика',
-  investments: 'Investment Fundamentals · Основы инвестиций',
-  portfolio: 'Portfolio Fundamentals · Основы портфеля',
-  english: 'Financial English · Финансовый английский',
-};
+import { hasCompleted } from '@/lib/progress';
+import { useEffectiveProgress } from './effective-progress';
+import { useKnowledge } from './learning-provider';
 function authError(message: string) {
   if (/invalid login credentials/i.test(message)) return 'Неверный email или пароль.';
   if (/email not confirmed/i.test(message)) return 'Подтвердите email по ссылке в письме.';
@@ -260,18 +254,23 @@ function AuthCard() {
   );
 }
 export default function Profile() {
-  const { progress, ready, user, status, theme, toggleTheme, update } = useLearning();
+  const { progress: rawProgress, ready, user, status, theme, toggleTheme, update } = useLearning();
+  const progress = useEffectiveProgress();
+  const { knowledge, data: learningData } = useKnowledge();
   if (!progress || !ready) return <div className="loading-state">Загружаем профиль…</div>;
   const completed = lessons.filter((l) => hasCompleted(progress, l));
-  const correct = progress.attempts.filter((a) => a.correct).length;
-  const accuracy = progress.attempts.length
-    ? Math.round((correct / progress.attempts.length) * 100)
-    : 0;
-  const history = [...progress.attempts]
-    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
-    .slice(0, 12);
+  const checked = new Map(progress.attempts.map((attempt) => [attempt.id, attempt]));
+  for (const event of learningData.events)
+    if (event.valid) checked.set(event.id, { ...event, runId: event.sessionId });
+  const allAttempts = [...checked.values()];
+  const correct = allAttempts.filter((a) => a.correct).length;
+  const accuracy = allAttempts.length ? Math.round((correct / allAttempts.length) * 100) : 0;
+  const history = [...allAttempts].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 12);
   const exportProgress = () => {
-    const blob = new Blob([JSON.stringify(progress, null, 2)], { type: 'application/json' });
+    const blob = new Blob(
+      [JSON.stringify({ progress: rawProgress, learning: learningData }, null, 2)],
+      { type: 'application/json' },
+    );
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -308,7 +307,7 @@ export default function Profile() {
                 <span>этапов завершено</span>
               </div>
               <div className="stat-box">
-                <strong>{progress.attempts.length}</strong>
+                <strong>{allAttempts.length}</strong>
                 <span>ответов проверено</span>
               </div>
               <div className="stat-box">
@@ -317,45 +316,40 @@ export default function Profile() {
               </div>
             </div>
             <h3 style={{ marginTop: 28 }}>Карта компетенций</h3>
-            {(Object.keys(skillLabels) as SkillId[]).map((skill) => {
-              const stat = skillStats(skill, lessons, progress);
-              return (
-                <div className="skill-row" key={skill}>
-                  <div className="skill-title">
-                    <span>{skillLabels[skill]}</span>
-                    <strong>{stat.mastery}%</strong>
-                  </div>
-                  <div className="progress-track">
-                    <span style={{ width: `${stat.mastery}%` }} />
-                  </div>
-                  <p>
-                    {stat.assessed
-                      ? `${stat.accuracy}% с первой попытки · проверено ${stat.assessed} из ${stat.total} взвешенных заданий`
-                      : 'Пока нет результатов. Начните с практики в уроках.'}
-                  </p>
+            <p className="muted">
+              20 навыков: самостоятельная практика, повторение спустя время и серверные экзамены.
+            </p>
+            {knowledge.skills.map((skill) => (
+              <div className="skill-row" key={skill.id}>
+                <div className="skill-title">
+                  <span>{skill.name}</span>
+                  <strong>{skill.mastery}%</strong>
                 </div>
-              );
-            })}
-            <div className="skill-row">
-              <div className="skill-title">
-                <span className="muted">Financial Statements · Финансовая отчётность</span>
-                <span className="pill">Следующие версии</span>
+                <div className="progress-track">
+                  <span style={{ width: `${skill.mastery}%` }} />
+                </div>
+                <p>
+                  {skill.attempts
+                    ? `${skill.firstAttemptAccuracy}% первых самостоятельных ответов · ${skill.attemptedTemplates} типов заданий`
+                    : 'Пока нет результатов практики'}
+                </p>
               </div>
-            </div>
+            ))}
+            <Link className="button primary" href="/knowledge">
+              Мои знания: динамика и рекомендации <ArrowUpRight size={14} />
+            </Link>
             <details className="model-note">
               <summary>Как рассчитывается освоение</summary>
               <p>
-                Для каждого задания учитывается первый валидный ответ в последнем прохождении
-                актуальной версии урока. Исправленный ответ не превращает первую ошибку в успех;
-                повторное прохождение даёт новую проверку.
+                Для финансовых навыков: 45% самостоятельной практики, 30% успешных проверок спустя
+                время, 25% серверных экзаменов. Для финансового английского: 55% практики и 45%
+                интервальных повторений.
               </p>
               <p>
-                Обычное задание весит 1, экзаменационное — 2. Освоение = вес правильно решённых
-                заданий / вес всех доступных заданий компетенции. Точность = верный вес /
-                проверенный вес. Поэтому высокая точность в одном уроке не означает освоение всей
-                программы. Диагностика и задание дня не входят в эти проценты.
+                Учитываются сложность и охват разных типов задач. Исправление после ошибки даёт
+                ограниченный вклад. Повторение того же варианта не увеличивает баллы. Подробная
+                модель и компоненты каждого навыка доступны в разделе «Мои знания».
               </p>
-              <p>Показатели пересчитываются из попыток; чтение текста не добавляет баллы.</p>
             </details>
           </section>
           <section className="panel" style={{ marginTop: 22 }}>

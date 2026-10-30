@@ -1,8 +1,10 @@
 /* Public learning content only. Account data and Auth responses never enter Cache API. */
-const CACHE = 'finlab-public-0.1.0';
+const CACHE = 'finlab-public-0.2.0';
 const publicPage = (path) =>
   path === '/' ||
-  /^\/(path|lab|library|onboarding)\/?$/.test(path) ||
+  /^\/(path|lab|lab\/concepts|library|onboarding|practice|review|english|knowledge)\/?$/.test(
+    path,
+  ) ||
   /^\/lesson\/[a-z0-9-]+\/?$/.test(path);
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -33,10 +35,10 @@ self.addEventListener('message', (event) => {
   const url = new URL(event.data.url, self.location.origin);
   if (url.origin !== self.location.origin || !publicPage(url.pathname)) return;
   event.waitUntil(
-    fetch(url.pathname, { credentials: 'omit', headers: { Accept: 'text/html' } })
+    fetch(url.pathname + url.search, { credentials: 'omit', headers: { Accept: 'text/html' } })
       .then(async (response) => {
         if (response.ok && response.headers.get('content-type')?.includes('text/html'))
-          await (await caches.open(CACHE)).put(url.pathname, response);
+          await (await caches.open(CACHE)).put(url.pathname + url.search, response);
       })
       .catch(() => {}),
   );
@@ -52,11 +54,13 @@ self.addEventListener('fetch', (event) => {
         try {
           const response = await fetch(request);
           if (response.ok && publicPage(url.pathname))
-            await cache.put(url.pathname, response.clone());
+            await cache.put(url.pathname + url.search, response.clone());
           return response;
         } catch {
           return (
-            (publicPage(url.pathname) && (await cache.match(url.pathname))) ||
+            (publicPage(url.pathname) &&
+              ((await cache.match(url.pathname + url.search)) ||
+                (await cache.match(url.pathname)))) ||
             (await cache.match('/offline.html'))
           );
         }

@@ -1,5 +1,6 @@
 import LearningPath from '@/components/learning-path';
 export const metadata = { title: 'Образовательный путь' };
-export default function Page() {
-  return <LearningPath />;
+export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const { view } = await searchParams;
+  return <LearningPath view={view} />;
 }

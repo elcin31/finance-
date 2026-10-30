@@ -20,6 +20,9 @@ export default defineConfig({
     launchOptions: { executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] },
     screenshot: 'only-on-failure',
     trace: 'off',
+    proxy: process.env.HTTPS_PROXY
+      ? { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' }
+      : undefined,
   },
   webServer: process.env.BASE_URL
     ? undefined

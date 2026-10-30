@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { gradeExercise, parseNumericAnswer } from './evaluation';
+import { getCalculationExpected, gradeExercise, parseNumericAnswer } from './evaluation';
 import type {
   Answer,
+  CalculationExercise,
   ChoiceExercise,
   ExerciseBase,
   MatchingExercise,
   NumericExercise,
+  OrderingExercise,
   Unit,
 } from './types';
 
@@ -88,6 +90,333 @@ describe('parseNumericAnswer', () => {
     ['₽100 ₽', 'currency'],
   ] satisfies [string, Unit][])('rejects mismatched units: %s / %s', (raw, unit) => {
     expect(parseNumericAnswer(raw, unit).valid).toBe(false);
+  });
+});
+
+describe('explicit answer currency', () => {
+  it.each(['1000', '$1000', '1 000 USD', '1000 $', '1000 долл.', '$1\u202f000,00'])(
+    'accepts USD notation %s only for USD',
+    (raw) => {
+      expect(parseNumericAnswer(raw, 'currency', 'USD')).toEqual({ valid: true, value: 1000 });
+      if (raw !== '1000') expect(parseNumericAnswer(raw, 'currency', 'RUB').valid).toBe(false);
+    },
+  );
+  it.each(['1000 ₽', '₽1000', '1000 RUB', '1000 руб.', '$1000 USD', '$1000 $', '1000 EUR'])(
+    'rejects foreign or duplicate USD units %s',
+    (raw) => {
+      expect(parseNumericAnswer(raw, 'currency', 'USD')).toMatchObject({
+        valid: false,
+        errorType: 'unit',
+      });
+    },
+  );
+  it('grades a USD amount without treating a RUB answer as equivalent', () => {
+    const dollars: NumericExercise = {
+      ...numeric,
+      unit: 'currency',
+      currency: 'USD',
+      expected: 1000,
+    };
+    expect(gradeExercise(dollars, '$1 000').correct).toBe(true);
+    expect(gradeExercise(dollars, '1 000 ₽')).toMatchObject({ valid: false, errorType: 'unit' });
+    expect(gradeExercise({ ...dollars, currency: 'RUB' }, '1 000 USD')).toMatchObject({
+      valid: false,
+      errorType: 'unit',
+    });
+  });
+});
+
+describe('ordering evaluation', () => {
+  const ordering: OrderingExercise = {
+    ...base,
+    kind: 'ordering',
+    items: [
+      { id: 'discount', label: 'Дисконтировать потоки' },
+      { id: 'sum', label: 'Сложить PV' },
+      { id: 'invest', label: 'Вычесть начальное вложение' },
+    ],
+    correctOrder: ['discount', 'sum', 'invest'],
+  };
+  it('compares a complete permutation in order', () => {
+    expect(gradeExercise(ordering, ['discount', 'sum', 'invest'])).toMatchObject({
+      valid: true,
+      correct: true,
+      errorType: 'none',
+      message: base.explanation,
+    });
+    expect(gradeExercise(ordering, ['sum', 'discount', 'invest'])).toMatchObject({
+      valid: true,
+      correct: false,
+      errorType: 'ordering',
+      message: base.hint,
+    });
+  });
+  it.each(
+    (
+      [
+        [],
+        ['discount'],
+        ['discount', 'discount', 'invest'],
+        ['discount', 'sum', 'unknown'],
+        ['discount', 'sum', 'invest', 'extra'],
+        'discount',
+        { discount: '1' },
+      ] satisfies Answer[]
+    ).map((answer) => ({ answer })),
+  )('rejects a missing, duplicate or unknown element: $answer', ({ answer }) => {
+    expect(gradeExercise(ordering, answer).valid).toBe(false);
+  });
+  it('does not accept malformed content as a completed ordering', () => {
+    expect(gradeExercise({ ...ordering, items: [], correctOrder: [] }, []).valid).toBe(false);
+    expect(
+      gradeExercise({ ...ordering, correctOrder: ['sum', 'sum', 'invest'] }, [
+        'discount',
+        'sum',
+        'invest',
+      ]).valid,
+    ).toBe(false);
+  });
+});
+
+const futureCalculation: CalculationExercise = {
+  ...base,
+  kind: 'calculation',
+  model: 'future-value',
+  unit: 'currency',
+  parameters: [
+    {
+      id: 'initial',
+      label: 'Начальная сумма',
+      value: 1000,
+      min: 0,
+      max: 1000000,
+      step: 100,
+      unit: '₽',
+    },
+    { id: 'rate', label: 'Годовая ставка', value: 10, min: -50, max: 50, step: 0.5, unit: '%' },
+    { id: 'years', label: 'Срок', value: 2, min: 0, max: 100, step: 1, unit: 'лет' },
+  ],
+};
+const futureAnswer = { initial: '1000', rate: '10', years: '2', result: '1210' };
+const invalidCalculationAnswers: Answer[] = [
+  '',
+  [],
+  {},
+  { result: '1210' },
+  { ...futureAnswer, initial: '' },
+  { ...futureAnswer, rate: 'Infinity' },
+  { ...futureAnswer, rate: 'NaN' },
+  { ...futureAnswer, rate: '1/0' },
+  { ...futureAnswer, initial: '-100' },
+  { ...futureAnswer, years: '101' },
+  { ...futureAnswer, rate: '10.1' },
+  { ...futureAnswer, years: '1.5' },
+  { ...futureAnswer, extra: '123' },
+  { ...futureAnswer, result: 'Infinity' },
+  { ...futureAnswer, result: '' },
+];
+
+describe('interactive calculation evaluation', () => {
+  it('checks the submitted parameter combination rather than the defaults', () => {
+    const changed = { initial: '2000 ₽', rate: '7,5%', years: '3', result: '2484,59 ₽' };
+    expect(getCalculationExpected(futureCalculation, changed)).toBeCloseTo(2000 * 1.075 ** 3, 8);
+    expect(gradeExercise(futureCalculation, changed)).toMatchObject({
+      valid: true,
+      correct: true,
+      errorType: 'none',
+    });
+    expect(gradeExercise(futureCalculation, changed).message).toMatch(/2\s000/u);
+    expect(gradeExercise(futureCalculation, { ...changed, result: '1210' })).toMatchObject({
+      valid: true,
+      correct: false,
+      errorType: 'calculation',
+      message: base.hint,
+    });
+  });
+  it('preserves absolute tolerance and supports zero and negative rates', () => {
+    expect(gradeExercise(futureCalculation, { ...futureAnswer, result: '1210,005' }).correct).toBe(
+      true,
+    );
+    expect(gradeExercise(futureCalculation, { ...futureAnswer, result: '1210,006' }).correct).toBe(
+      false,
+    );
+    expect(
+      gradeExercise(futureCalculation, { ...futureAnswer, rate: '0', result: '1000' }).correct,
+    ).toBe(true);
+    expect(
+      gradeExercise(futureCalculation, { ...futureAnswer, rate: '-10', result: '810' }).correct,
+    ).toBe(true);
+    expect(
+      gradeExercise(futureCalculation, { ...futureAnswer, initial: '0', result: '0' }).correct,
+    ).toBe(true);
+  });
+  it.each(invalidCalculationAnswers.map((answer) => ({ answer })))(
+    'rejects missing, malformed, out-of-bounds and off-step data $answer',
+    ({ answer }) => {
+      expect(gradeExercise(futureCalculation, answer).valid).toBe(false);
+    },
+  );
+  it('distinguishes incorrect units from arithmetic errors', () => {
+    expect(gradeExercise(futureCalculation, { ...futureAnswer, rate: '10 bp' })).toMatchObject({
+      valid: false,
+      errorType: 'unit',
+    });
+    expect(gradeExercise(futureCalculation, { ...futureAnswer, result: '1210%' })).toMatchObject({
+      valid: false,
+      errorType: 'unit',
+    });
+    expect(gradeExercise(futureCalculation, { ...futureAnswer, result: '$1210' })).toMatchObject({
+      valid: false,
+      errorType: 'unit',
+    });
+    expect(
+      gradeExercise(
+        { ...futureCalculation, currency: 'USD' },
+        { ...futureAnswer, initial: '$1000', result: '$1210' },
+      ).correct,
+    ).toBe(true);
+  });
+  it('rejects invalid model settings and division by zero safely', () => {
+    expect(
+      gradeExercise(
+        {
+          ...futureCalculation,
+          parameters: [
+            { ...futureCalculation.parameters[0], step: 0 },
+            ...futureCalculation.parameters.slice(1),
+          ],
+        },
+        futureAnswer,
+      ).valid,
+    ).toBe(false);
+    expect(
+      gradeExercise(
+        {
+          ...futureCalculation,
+          parameters: [
+            { ...futureCalculation.parameters[0], min: NaN },
+            ...futureCalculation.parameters.slice(1),
+          ],
+        },
+        futureAnswer,
+      ).valid,
+    ).toBe(false);
+    expect(
+      gradeExercise(
+        {
+          ...futureCalculation,
+          parameters: [
+            futureCalculation.parameters[0],
+            futureCalculation.parameters[0],
+            futureCalculation.parameters[2],
+          ],
+        },
+        futureAnswer,
+      ).valid,
+    ).toBe(false);
+    expect(gradeExercise({ ...futureCalculation, unit: 'percent' }, futureAnswer)).toMatchObject({
+      valid: false,
+      errorType: 'unit',
+    });
+    const invalidRate = {
+      ...futureCalculation,
+      parameters: futureCalculation.parameters.map((p) =>
+        p.id === 'rate' ? { ...p, min: -100 } : p,
+      ),
+    };
+    expect(gradeExercise(invalidRate, { ...futureAnswer, rate: '-100' }).valid).toBe(false);
+    expect(() => getCalculationExpected(futureCalculation, {})).toThrow(RangeError);
+  });
+  it('discounts one future payment using the supplied parameters', () => {
+    const exercise: CalculationExercise = {
+      ...futureCalculation,
+      model: 'present-value',
+      parameters: futureCalculation.parameters.map((p) =>
+        p.id === 'initial' ? { ...p, id: 'amount', value: 1200 } : p,
+      ),
+    };
+    expect(
+      getCalculationExpected(exercise, { amount: '121000', rate: '10', years: '2' }),
+    ).toBeCloseTo(100000, 8);
+    expect(
+      gradeExercise(exercise, { amount: '121000', rate: '10', years: '2', result: '100000' })
+        .correct,
+    ).toBe(true);
+  });
+  it('uses the exact Fisher relation and blocks an inflation divisor of zero', () => {
+    const exercise: CalculationExercise = {
+      ...base,
+      kind: 'calculation',
+      model: 'real-return',
+      unit: 'percent',
+      parameters: [
+        {
+          id: 'nominal',
+          label: 'Номинальная доходность',
+          value: 10,
+          min: -100,
+          max: 100,
+          step: 0.5,
+          unit: '%',
+        },
+        { id: 'inflation', label: 'Инфляция', value: 6, min: -100, max: 100, step: 0.5, unit: '%' },
+      ],
+    };
+    expect(getCalculationExpected(exercise, { nominal: '10%', inflation: '6%' })).toBeCloseTo(
+      3.77358490566,
+      8,
+    );
+    expect(
+      gradeExercise(exercise, { nominal: '10', inflation: '6', result: '3,77%' }).correct,
+    ).toBe(true);
+    expect(gradeExercise(exercise, { nominal: '10', inflation: '6', result: '4%' }).correct).toBe(
+      false,
+    );
+    expect(
+      gradeExercise(exercise, { nominal: '-100', inflation: '6', result: '-100' }).correct,
+    ).toBe(true);
+    expect(gradeExercise(exercise, { nominal: '10', inflation: '-100', result: '0' }).valid).toBe(
+      false,
+    );
+  });
+  it('derives the second portfolio weight and handles negative returns', () => {
+    const exercise: CalculationExercise = {
+      ...base,
+      kind: 'calculation',
+      model: 'portfolio-return',
+      unit: 'percent',
+      parameters: [
+        { id: 'weightA', label: 'Вес A', value: 60, min: 0, max: 100, step: 5, unit: '%' },
+        {
+          id: 'returnA',
+          label: 'Доходность A',
+          value: 10,
+          min: -100,
+          max: 100,
+          step: 1,
+          unit: '%',
+        },
+        {
+          id: 'returnB',
+          label: 'Доходность B',
+          value: -5,
+          min: -100,
+          max: 100,
+          step: 1,
+          unit: '%',
+        },
+      ],
+    };
+    expect(
+      getCalculationExpected(exercise, { weightA: '60', returnA: '10', returnB: '-5' }),
+    ).toBeCloseTo(4, 8);
+    expect(
+      gradeExercise(exercise, { weightA: '60', returnA: '10', returnB: '-5', result: '4%' })
+        .correct,
+    ).toBe(true);
+    expect(
+      gradeExercise(exercise, { weightA: '105', returnA: '10', returnB: '-5', result: '4%' }).valid,
+    ).toBe(false);
   });
 });
 

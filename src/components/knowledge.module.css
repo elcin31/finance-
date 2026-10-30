@@ -1,0 +1,1011 @@
+.root {
+  min-width: 0;
+  width: 100%;
+}
+.root h2 {
+  font-size: 20px;
+  margin: 0 0 15px;
+}
+.root h3 {
+  font-size: 13px;
+  margin: 0 0 9px;
+}
+.mapIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin: 6px 0 23px;
+}
+.mapIntro h1 {
+  margin: 0 0 9px;
+  font-size: 24px;
+}
+.mapIntro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  max-width: 690px;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  font-size: 9px;
+  line-height: 1.5;
+  font-weight: 400;
+  padding: 4px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: var(--surface);
+}
+.learning,
+.mastered {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft, var(--surface-2));
+}
+.review {
+  color: var(--text);
+  border-color: #b08254;
+  background: var(--surface-2);
+}
+.not-started {
+  color: var(--muted);
+}
+.treeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 17px;
+  align-items: start;
+}
+.branch {
+  min-width: 0;
+}
+.branch > header {
+  min-height: 128px;
+  padding: 0 5px 18px;
+}
+.groupIcon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--accent);
+  background: var(--accent-soft, var(--surface-2));
+  margin-bottom: 12px;
+}
+.branch header h3 {
+  font-size: 14px;
+  margin-bottom: 7px;
+}
+.branch header p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 0;
+}
+.branchCards {
+  display: grid;
+  gap: 13px;
+  border-left: 1px solid var(--line);
+  padding-left: 13px;
+  margin-left: 13px;
+}
+.skillCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 160px;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 16px 14px;
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.skillCard::before {
+  content: '';
+  width: 13px;
+  height: 1px;
+  position: absolute;
+  left: -14px;
+  top: 24px;
+  background: var(--line);
+}
+.skillCard:hover {
+  border-color: var(--accent);
+}
+.skillCard.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft, var(--surface-2));
+}
+.skillCard:focus-visible,
+.prerequisiteButtons button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  align-items: baseline;
+}
+.cardName {
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.45;
+}
+.cardTop > strong {
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 12px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.englishName {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+}
+.meter {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 5px;
+  background: var(--line);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--accent);
+}
+.skillCard .meter {
+  margin: 18px 0 13px;
+}
+.cardPrerequisites {
+  font-size: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  margin-top: 9px;
+}
+.skillDetail {
+  margin-top: 30px;
+  scroll-margin-top: 24px;
+}
+.detailHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 25px;
+  padding-bottom: 23px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.detailHeading h2 {
+  font-size: 24px;
+  margin: 0 0 9px;
+}
+.detailHeading p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  max-width: 700px;
+  margin: 0;
+}
+.detailScore {
+  display: grid;
+  gap: 8px;
+  text-align: right;
+  justify-items: end;
+  flex-shrink: 0;
+}
+.detailScore > strong {
+  font-size: 31px;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+}
+.detailColumns {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 32px;
+}
+.componentScores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.componentScores > div {
+  padding: 13px 11px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  align-content: start;
+}
+.componentScores span {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
+.componentScores strong {
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.smallMuted {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.errorChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 13px 0;
+}
+.errorChips > span,
+.errorChips > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  font-size: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.errorChips strong {
+  color: var(--text);
+  font-weight: 500;
+}
+.errorChips > a {
+  min-height: 44px;
+  color: var(--accent);
+}
+.sectionTitle {
+  margin-top: 23px !important;
+}
+.prerequisiteButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.prerequisiteButtons button {
+  min-height: 44px;
+  padding: 9px 11px;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 7px;
+}
+.prerequisiteButtons button.needsFoundation {
+  border-color: #b08254;
+}
+.prerequisiteButtons button > span {
+  color: var(--muted);
+  font-size: 8px;
+}
+.recommendationReason {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  margin-bottom: 17px;
+}
+.detailColumns > div > a {
+  margin: 0 8px 12px 0;
+}
+.lessonLinks {
+  display: grid;
+  gap: 6px;
+}
+.lessonLinks a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+  min-height: 44px;
+  padding: 7px 0;
+  font-size: 11px;
+  border-bottom: 1px solid var(--line);
+}
+.lessonLinks a > span {
+  flex: 1;
+  min-width: 0;
+}
+.lessonLinks a svg {
+  color: var(--accent);
+}
+.detailHistory {
+  margin-top: 25px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+.detailHistory ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.detailHistory li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.detailHistory li:last-child {
+  border-bottom: 0;
+}
+.successDot,
+.practiceDot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.practiceDot {
+  background: #b08254;
+}
+.detailHistory li > div {
+  flex: 1;
+  min-width: 0;
+}
+.detailHistory li > div > strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.detailHistory li > div > span {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  margin-top: 4px;
+}
+.historyOutcome {
+  font-size: 9px;
+  color: var(--muted);
+}
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.summaryGrid > section > span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.summaryGrid > section > strong {
+  display: block;
+  color: var(--accent);
+  font-size: 33px;
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  margin: 12px 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+.summaryGrid small {
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.summaryGrid p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 0;
+}
+.startState {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin: 0 0 24px;
+}
+.startState > div {
+  flex: 1;
+  min-width: 0;
+}
+.startState h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.startState p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 0;
+}
+.startIcon {
+  width: 55px;
+  height: 55px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--accent);
+  background: var(--accent-soft, var(--surface-2));
+  flex-shrink: 0;
+}
+.competencyPanel {
+  margin-bottom: 24px;
+}
+.skillList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 28px;
+}
+.assessmentRow {
+  border-bottom: 1px solid var(--line);
+  padding: 19px 0;
+  min-width: 0;
+}
+.assessmentHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 13px;
+}
+.assessmentHeading h3 {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 5px;
+}
+.assessmentHeading p {
+  color: var(--muted);
+  font-size: 10px;
+  margin: 0;
+}
+.assessmentHeading > div:last-child {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.assessmentHeading strong {
+  color: var(--accent);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1;
+}
+.assessmentFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 10px 0 4px;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.model {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 0 15px;
+}
+.model summary {
+  min-height: 44px;
+  cursor: pointer;
+  padding: 13px 0;
+  color: var(--accent);
+  font-size: 11px;
+}
+.model p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.9;
+}
+.model p strong {
+  color: var(--text);
+  font-weight: 500;
+}
+.twoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+}
+.accentIcon {
+  color: var(--accent);
+}
+.insight {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.insight:last-child {
+  border: 0;
+  padding-bottom: 0;
+}
+.insight:first-of-type {
+  padding-top: 0;
+}
+.insight p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+.timelinePanel,
+.recommendationsPanel,
+.examPanel,
+.achievements {
+  margin-top: 24px;
+}
+.dayBars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: 14px;
+  max-width: 760px;
+  margin: 25px auto 18px;
+}
+.dayBar {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.dayBar > strong {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 500;
+}
+.dayBar > div {
+  width: 100%;
+  max-width: 48px;
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--surface-2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.dayBar > div > span {
+  display: block;
+  width: 100%;
+  background: var(--accent);
+  border-radius: 5px;
+}
+.dayBar > span {
+  color: var(--muted);
+  font-size: 9px;
+}
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 18px;
+}
+.tableWrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: right;
+}
+.tableWrap caption {
+  text-align: left;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  padding-bottom: 10px;
+}
+.tableWrap th,
+.tableWrap td {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.tableWrap th {
+  font-weight: 500;
+}
+.tableWrap th:first-child {
+  text-align: left;
+}
+.tableWrap td {
+  color: var(--muted);
+}
+.recommendations {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 20px;
+}
+.recommendations article {
+  border-left: 2px solid var(--line);
+  padding-left: 17px;
+  min-width: 0;
+}
+.recommendations article .eyebrow {
+  font-size: 8px;
+}
+.recommendations h3 {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.recommendations p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.examResults {
+  display: grid;
+  gap: 18px;
+}
+.examResults article {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 10px;
+}
+.examResultHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.examResultHeading h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.examResultHeading p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 0;
+}
+.examResultHeading > div:last-child {
+  display: grid;
+  text-align: right;
+  gap: 6px;
+}
+.examResultHeading strong {
+  font-size: 26px;
+  line-height: 1.1;
+  font-weight: 500;
+  color: var(--accent);
+}
+.examResultHeading > div > span {
+  color: var(--muted);
+  font-size: 9px;
+}
+.serverCaption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  margin: 15px 0 0;
+  line-height: 1.8;
+}
+.legacyExams {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.legacyExams summary {
+  font-size: 11px;
+  min-height: 44px;
+  padding: 11px 0;
+  cursor: pointer;
+  color: var(--muted);
+}
+.legacyExams p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.legacyExams ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.legacyExams li {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
+  line-height: 1.7;
+}
+.legacyExams li > span:last-child {
+  color: var(--muted);
+  text-align: right;
+}
+.achievements > div {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.achievements > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 9px 12px;
+  background: var(--accent-soft, var(--surface-2));
+  border: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 11px;
+  border-radius: 8px;
+}
+.syncNote {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 22px 0 0;
+}
+@media (max-width: 1250px) {
+  .treeGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 26px 22px;
+  }
+  .branch > header {
+    min-height: 115px;
+  }
+  .summaryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .detailColumns {
+    gap: 24px;
+  }
+}
+@media (max-width: 900px) {
+  .detailColumns {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .skillList {
+    grid-template-columns: 1fr;
+  }
+  .startState {
+    flex-wrap: wrap;
+  }
+  .startState > a {
+    margin-left: 75px;
+  }
+  .recommendations {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .recommendations article {
+    border-left-width: 2px;
+  }
+}
+@media (max-width: 650px) {
+  .mapIntro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .mapIntro h1 {
+    font-size: 22px;
+  }
+  .mapIntro p {
+    font-size: 11px;
+  }
+  .treeGrid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .branch > header {
+    min-height: 0;
+    padding-bottom: 17px;
+  }
+  .branch > header h3 {
+    font-size: 16px;
+  }
+  .branch > header p {
+    font-size: 11px;
+  }
+  .branchCards {
+    gap: 11px;
+    margin-left: 15px;
+    padding-left: 18px;
+  }
+  .skillCard {
+    min-height: 147px;
+    padding: 17px;
+  }
+  .skillCard::before {
+    width: 18px;
+    left: -19px;
+  }
+  .cardName {
+    font-size: 14px;
+  }
+  .cardTop > strong {
+    font-size: 14px;
+  }
+  .englishName {
+    font-size: 9px;
+  }
+  .cardPrerequisites {
+    font-size: 9px;
+  }
+  .status {
+    font-size: 9px;
+  }
+  .detailHeading {
+    gap: 14px;
+  }
+  .detailHeading h2 {
+    font-size: 21px;
+  }
+  .detailHeading p {
+    font-size: 11px;
+  }
+  .detailScore > strong {
+    font-size: 25px;
+  }
+  .detailScore .status {
+    max-width: 95px;
+    text-align: right;
+  }
+  .componentScores {
+    gap: 6px;
+  }
+  .componentScores > div {
+    padding: 12px 9px;
+  }
+  .componentScores strong {
+    font-size: 20px;
+  }
+  .componentScores span {
+    font-size: 8px;
+  }
+  .detailHistory li {
+    flex-wrap: wrap;
+  }
+  .detailHistory li > div {
+    min-width: 150px;
+  }
+  .historyOutcome {
+    margin-left: 16px;
+  }
+  .summaryGrid {
+    gap: 12px;
+  }
+  .summaryGrid > section {
+    padding: 17px;
+  }
+  .summaryGrid > section > span {
+    font-size: 10px;
+  }
+  .summaryGrid > section > strong {
+    font-size: 29px;
+  }
+  .summaryGrid p {
+    font-size: 9px;
+  }
+  .twoColumns {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .root h2 {
+    font-size: 18px;
+  }
+  .startState {
+    gap: 14px;
+  }
+  .startState > a {
+    margin: 0;
+    width: 100%;
+  }
+  .startState p {
+    font-size: 11px;
+  }
+  .startIcon {
+    width: 42px;
+    height: 42px;
+  }
+  .startState > div {
+    min-width: 180px;
+  }
+  .assessmentHeading {
+    gap: 10px;
+  }
+  .assessmentHeading h3 {
+    font-size: 12px;
+  }
+  .assessmentHeading .status {
+    font-size: 8px;
+    max-width: 115px;
+  }
+  .assessmentFacts {
+    font-size: 8px;
+    gap: 5px 10px;
+  }
+  .assessmentHeading > div:first-child {
+    min-width: 0;
+  }
+  .root :global(.panel-header) {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .dayBars {
+    gap: 7px;
+  }
+  .dayBar > div {
+    height: 105px;
+    max-width: 30px;
+  }
+  .dayBar > span,
+  .dayBar > strong {
+    font-size: 8px;
+  }
+  .tableWrap th,
+  .tableWrap td {
+    font-size: 9px;
+    padding: 10px 5px;
+  }
+  .tableWrap caption {
+    font-size: 9px;
+  }
+  .examResultHeading {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .examResultHeading > div:last-child {
+    text-align: left;
+  }
+  .examResultHeading h3 {
+    font-size: 13px;
+  }
+  .examResults article {
+    padding: 16px;
+  }
+  .legacyExams li {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .legacyExams li > span:last-child {
+    text-align: left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before {
+    transition: none !important;
+    animation: none !important;
+  }
+}
