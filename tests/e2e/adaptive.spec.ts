@@ -145,9 +145,13 @@ test('Financial English exposes four real ten-question categories and saves a co
     expect(
       englishPractice.filter((entry) => entry.category === track.id).length,
     ).toBeGreaterThanOrEqual(10);
-    await page.getByRole('tab', { name: track.title, exact: true }).click();
-    const links = page.locator('main a[href*="exercise=en02-"]');
-    expect(await links.count()).toBeGreaterThanOrEqual(10);
+    const tab = page.getByRole('tab', { name: track.title, exact: true });
+    await tab.click();
+    await expect(tab).toHaveAttribute('aria-selected', 'true');
+    const links = page
+      .getByRole('tabpanel', { name: track.title, exact: true })
+      .locator('a[href*="exercise=en02-"]');
+    await expect(links).toHaveCount(10);
     for (const href of await links.evaluateAll((items) =>
       items.map((item) => (item as HTMLAnchorElement).href),
     ))
@@ -161,7 +165,15 @@ test('Financial English exposes four real ten-question categories and saves a co
       exact: true,
     })
     .click();
-  await page.locator('a[href*="en02-c-weighted-average"]').click();
+  const calculations = englishTracks.find((track) => track.id === 'calculations')!;
+  await expect(page.getByRole('tab', { name: calculations.title, exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page
+    .getByRole('tabpanel', { name: calculations.title, exact: true })
+    .locator('a[href*="en02-c-weighted-average"]')
+    .click();
   await expect(
     page.getByRole('heading', { name: entry.exercise.prompt, exact: true }),
   ).toBeVisible();
